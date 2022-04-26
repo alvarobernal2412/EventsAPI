@@ -1,12 +1,13 @@
 from django.db import models
 
-class Users(models.Model):
-    name = models.CharField(max_length=50)
+class User(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=50)
     password = models.CharField(max_length=50)
     def __str__(self):
-        return self.name
+        return str(self.id)
 
-class Events(models.Model):
+class Event(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=50)
     day = models.CharField(max_length=50)

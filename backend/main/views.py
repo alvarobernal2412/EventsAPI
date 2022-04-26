@@ -1,24 +1,24 @@
 import os
-from . import models
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics
+from .models import User
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK as ST_200,
     HTTP_201_CREATED as ST_201,
     HTTP_400_BAD_REQUEST as ST_400,
-    HTTP_404_NOT_FOUND,
+    HTTP_404_NOT_FOUND as ST_404
 )
 
-class userView(generics.CreateAPIView):
-    @csrf_exempt
+class RegisterAPI(APIView):
+    permission_classes = (AllowAny,)
     def post(self, request):
-        body = request.data
-        name = body['name']
-        password = body['password']
-        models.Users.objects.create(name=name, password=password)
-        return Response(status=ST_201)
-
-    #@csrf_exempt
-    #def get(self, request):
-    #    return Response(models.Users.objects.get())
+        data = request.data.copy()
+        username = data['username']
+        password = data['password']
+        if User.objects.filter(username=username).exists():
+            err = "Ya existe un usuario registrado con el mismo nombre"
+            return Response({"error":err},status=ST_400)       
+        else:
+            User.objects.create(username=username, password=password)
+            return Response({"mensaje":"Usuario registrado correctamente"},status= ST_201)
