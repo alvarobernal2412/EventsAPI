@@ -11,27 +11,15 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST as ST_400,
     HTTP_404_NOT_FOUND as ST_404
 )
+from .serializers import UserSerializer
 
-class RegisterAPI(APIView):
-    permission_classes = (AllowAny,)
+class userAPI(APIView):
+    serializer_class = UserSerializer
     def post(self, request):
-        data = request.data.copy()
-        username = data['username']
-        password = data['password']
-        if User.objects.filter(username=username).exists():
-            err = "Ya existe un usuario registrado con el mismo nombre"
-            return Response({"error":err},status=ST_400)       
-        else:
-            User.objects.create(username=username, password=password)
-            return Response({"mensaje":"Usuario registrado correctamente"},status= ST_201)
-
-class UserAPI(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        users = list(User.objects.values())
-        if len(users) > 0:
-            res = {"mensaje":"Petición realizada con éxito", "users": users}
-        else:
-            res = {"mensaje":"No existe ningún usuario"}
-        return JsonResponse(res)
+        serializer = self.get_serializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "Message": "User created successfully","User": serializer.data}, status=ST_201
+                )
+        return Response({"Errors":serializers.errors}, status= ST_400)
