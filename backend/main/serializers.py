@@ -3,7 +3,7 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import Calendar, Day ,Event
+from .models import Calendar ,Event
 
 
 class CreateCalendarSerializer(serializers.ModelSerializer):
@@ -18,4 +18,16 @@ class CreateCalendarSerializer(serializers.ModelSerializer):
         user.set_password(validatedData['password'])
         user.save()
         Calendar.objects.create(user=user)
+        return user
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['username','password']
+
+    def change(self,validatedData):
+        user = User.objects.change(username=validatedData['username'])
+        user.set_password(validatedData['password'])
+        user.save()
         return user
