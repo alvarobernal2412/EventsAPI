@@ -14,10 +14,12 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED as ST_401,
     HTTP_404_NOT_FOUND as ST_404,
 )
-from .serializers import CreateCalendarSerializer,UserSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
+from .serializers import CreateCalendarSerializer, UserSerializer, CreateEventSerializer
 
 class CalendarView(generics.CreateAPIView):
-    
+    permission_classes = (AllowAny,)
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
@@ -30,11 +32,10 @@ class CalendarView(generics.CreateAPIView):
                 err[k]= dic[k][0].capitalize()
         return err
 
-
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
-        serializer= CreateCalendarSerializer(data=data,context ={'request':request})
+        serializer= CreateCalendarSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
             return Response({"Message":"Calendar successfully created", "user":serializer.data},status=ST_201)
@@ -43,6 +44,7 @@ class CalendarView(generics.CreateAPIView):
             return Response({"Error":err},status=ST_400)
 
     def put(self,request, pk):
+        pass
         #if request.user != Calendar.objects.filter(pk=pk).user:
         #    return Response("You cannot change another user data", status=ST_401)
         #jd = json.loads(request.body)
@@ -56,13 +58,41 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-#class eventView(generics.CreateAPIView):
+class EventView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    def returnErrors(self,dic):
+        err={}
+        keys=dic.keys()
+        for k in keys:
+            if k == 'eventName':
+                x= dic[k][0].split(".")
+                title=x[0]+'.'+x[1]+'.'
+                err[k]= title
+            else:
+                err[k]= dic[k][0].capitalize()
+        return err
 
-#    def get(self, request):
-#        events = list(Event.objects.values())
-#        if len(events) > 0:
-#            res = {'events': events}
-#            return Response(res, status=ST_200)
-#        else:
-#            res = {'message': 'Events not found'}
-#            return Response(res, status=ST_404)
+    def get(self, request):
+        return Response(json.parse(request.user), status=ST_200)
+    """
+        events = list(Event.objects.values())
+        if len(events) > 0:
+            res = {'events': events}
+            return Response(res, status=ST_200)
+        else:
+            res = {'message': 'Events not found'}
+            return Response(res, status=ST_404)
+    """
+
+    """
+    @csrf_exempt
+    def post(self, request):
+        data = request.data.copy()
+        serializer= CreateEventSerializer(data=data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"Message":"Event successfully created", "event":serializer.data},status=ST_201)
+        else:
+            err= self.returnErrors(serializer.errors)
+            return Response({"Error":err},status=ST_400)
+    """    
