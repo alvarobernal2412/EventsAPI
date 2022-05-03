@@ -2,7 +2,7 @@ import os
 import json
 
 from . import models
-from main.models import Calendar
+from main.models import Calendar,Event
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from rest_framework.response import Response
@@ -19,7 +19,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import CreateCalendarSerializer, UserSerializer, CreateEventSerializer
 
 class CalendarView(generics.CreateAPIView):
-    permission_classes = (AllowAny,)
+    
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
@@ -59,22 +59,17 @@ class CalendarView(generics.CreateAPIView):
             
 
 class EventView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    
+
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
         for k in keys:
-            if k == 'eventName':
-                x= dic[k][0].split(".")
-                title=x[0]+'.'+x[1]+'.'
-                err[k]= title
-            else:
                 err[k]= dic[k][0].capitalize()
         return err
 
     def get(self, request):
-        return Response(json.parse(request.user), status=ST_200)
-    """
+        #event = Events.objects.filter(user=request.user)
         events = list(Event.objects.values())
         if len(events) > 0:
             res = {'events': events}
@@ -82,9 +77,8 @@ class EventView(generics.CreateAPIView):
         else:
             res = {'message': 'Events not found'}
             return Response(res, status=ST_404)
-    """
 
-    """
+    
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
@@ -94,5 +88,5 @@ class EventView(generics.CreateAPIView):
             return Response({"Message":"Event successfully created", "event":serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
-            return Response({"Error":err},status=ST_400)
-    """    
+            return Response({"Error":err},status=ST_400)     
+    

@@ -50,3 +50,4 @@ class CreateEventSerializer(serializers.ModelSerializer):
         )
         event.save()
         return event
+        #calendar tiene que ser modificado de manera que se auto asocie gracias a request.user

@@ -17,8 +17,5 @@ class Event(models.Model):
     calendar=models.ForeignKey(Calendar,on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
         
-
-
-#La fecha dentro de evento es susceptible a ser cambiada dependiendo de si da o no problemas por la doble dependencia de estos
