@@ -15,12 +15,16 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND as ST_404,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
 
-
-from .serializers import CreateCalendarSerializer, UserSerializer, CreateEventSerializer
+from .serializers import    (CreateCalendarSerializer, UserSerializer,
+                            SwaggerUserSerializer, CreateEventSerializer,
+                             SwaggerEventSerializer)
 
 class CalendarView(generics.CreateAPIView):
     permission_classes= (AllowAny,)
+    swagger_tags=["Endpoints de registro"]  
+
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
@@ -33,6 +37,7 @@ class CalendarView(generics.CreateAPIView):
                 err[k]= dic[k][0].capitalize()
         return err
 
+    @swagger_auto_schema(request_body=UserSerializer)
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
@@ -60,8 +65,8 @@ class CalendarView(generics.CreateAPIView):
             
 
 class EventView(generics.CreateAPIView):
-
     permission_classes= (IsAuthenticated,)
+    swagger_tags=["Endpoints de eventos"] 
 
     def returnErrors(self,dic):
         err={}
@@ -80,7 +85,7 @@ class EventView(generics.CreateAPIView):
             res = {'message': 'Events not found'}
             return Response(res, status=ST_404)
 
-    
+    @swagger_auto_schema(request_body=SwaggerEventSerializer)
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()

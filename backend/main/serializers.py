@@ -33,6 +33,12 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+class SwaggerUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['username']
+
 class CreateEventSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -51,3 +57,9 @@ class CreateEventSerializer(serializers.ModelSerializer):
         event.save()
         return event
         #calendar tiene que ser modificado de manera que se auto asocie gracias a request.user
+
+class SwaggerEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
