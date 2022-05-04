@@ -16,10 +16,11 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+
 from .serializers import CreateCalendarSerializer, UserSerializer, CreateEventSerializer
 
 class CalendarView(generics.CreateAPIView):
-    
+    permission_classes= (AllowAny,)
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
@@ -59,7 +60,8 @@ class CalendarView(generics.CreateAPIView):
             
 
 class EventView(generics.CreateAPIView):
-    
+
+    permission_classes= (IsAuthenticated,)
 
     def returnErrors(self,dic):
         err={}
