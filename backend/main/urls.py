@@ -8,4 +8,5 @@ urlpatterns = [
     path('events/', views.EventView.as_view()),
     path('auth/token/', TokenObtainPairView.as_view()),
     path('auth/refreshToken/', TokenRefreshView.as_view()),
+    path('events/<event_id>/' , views.EventView.delete_event ),
 ]

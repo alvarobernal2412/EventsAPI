@@ -1,5 +1,12 @@
+from importlib.resources import path
 import os
 import json
+from re import S
+from urllib import request
+
+from django.shortcuts import redirect ,  render
+
+from main import urls
 
 from . import models
 from main.models import Calendar,Event
@@ -65,7 +72,7 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(generics.CreateAPIView):
+class EventView(generics.CreateAPIView ):
     permission_classes= (IsAuthenticated,)
     swagger_tags=["Endpoints de eventos"]   
     
@@ -99,10 +106,18 @@ class EventView(generics.CreateAPIView):
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
+    @swagger_auto_schema(request_body=SwaggerEventSerializer)
+    @csrf_exempt    
+    def delete_event(request , event_id):
+        event = Event.objects.get(pk=event_id)
+        event.delete()
+        res= {'message' : 'Event has been deleted ' }
+        return Response(res , status=ST_204)
            
 class FilterEventView(generics.ListAPIView):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
     filter_backends = [DjangoFilterBackend,]
     filterset_fields = ['id',]
+
     
