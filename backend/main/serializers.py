@@ -63,3 +63,9 @@ class SwaggerEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
+
+class EventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')

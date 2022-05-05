@@ -16,10 +16,11 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import    (CreateCalendarSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
-                             SwaggerEventSerializer)
+                             SwaggerEventSerializer ,EventSerializer)
 
 class CalendarView(generics.CreateAPIView):
     permission_classes= (AllowAny,)
@@ -66,8 +67,10 @@ class CalendarView(generics.CreateAPIView):
 
 class EventView(generics.CreateAPIView):
     permission_classes= (IsAuthenticated,)
-    swagger_tags=["Endpoints de eventos"] 
-
+    swagger_tags=["Endpoints de eventos"]   
+    
+    
+    
     def returnErrors(self,dic):
         err={}
         keys=dic.keys()
@@ -95,5 +98,11 @@ class EventView(generics.CreateAPIView):
             return Response({"Message":"Event successfully created", "event":serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
-            return Response({"Error":err},status=ST_400)     
+            return Response({"Error":err},status=ST_400)  
+           
+class FilterEventView(generics.ListAPIView):
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
+    filter_backends = [DjangoFilterBackend,]
+    filterset_fields = ['id',]
     
