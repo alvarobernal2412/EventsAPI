@@ -4,7 +4,7 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import Calendar ,Event
+from .models import Calendar, Event
 
 
 class CreateCalendarSerializer(serializers.ModelSerializer):
@@ -58,14 +58,16 @@ class CreateEventSerializer(serializers.ModelSerializer):
         return event
         #calendar tiene que ser modificado de manera que se auto asocie gracias a request.user
 
+class EventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
+
+
 class SwaggerEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
         fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
 
-class EventSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Event
-        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
