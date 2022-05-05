@@ -2,7 +2,7 @@ import os
 import json
 
 from . import models
-from main.models import Calendar,Event
+from main.models import Calendar, Event
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from rest_framework.response import Response
@@ -17,10 +17,12 @@ from rest_framework.status import (
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from .serializers import    (CreateCalendarSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
-                             SwaggerEventSerializer ,EventSerializer)
+                            EventSerializer, SwaggerEventSerializer, )
 
 class CalendarView(generics.CreateAPIView):
     permission_classes= (AllowAny,)
@@ -45,12 +47,12 @@ class CalendarView(generics.CreateAPIView):
         serializer= CreateCalendarSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"Message":"Calendar successfully created", "user":serializer.data},status=ST_201)
+            return Response({"message":"Calendar successfully created", "user":serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
-            return Response({"Error":err},status=ST_400)
+            return Response({"error":err},status=ST_400)
 
-    def put(self,request, pk):
+    def put(self, request, pk):
         pass
         #if request.user != Calendar.objects.filter(pk=pk).user:
         #    return Response("You cannot change another user data", status=ST_401)
@@ -65,11 +67,9 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(generics.CreateAPIView):
+class EventView(generics.GenericAPIView):
     permission_classes= (IsAuthenticated,)
     swagger_tags=["Endpoints de eventos"]   
-    
-    
     
     def returnErrors(self,dic):
         err={}
@@ -82,10 +82,10 @@ class EventView(generics.CreateAPIView):
         #event = Events.objects.filter(user=request.user)
         events = list(Event.objects.values())
         if len(events) > 0:
-            res = {'events': events}
+            res = {"events": events}
             return Response(res, status=ST_200)
         else:
-            res = {'message': 'Events not found'}
+            res = {"message": "Events not found"}
             return Response(res, status=ST_404)
 
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
@@ -95,14 +95,68 @@ class EventView(generics.CreateAPIView):
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"Message":"Event successfully created", "event":serializer.data},status=ST_201)
+            return Response({"message":"Event successfully created", "event":serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
-            return Response({"Error":err},status=ST_400)  
+            return Response({"error":err},status=ST_400)  
+
+class EventsIdView(APIView):
+    permission_classes= (IsAuthenticated,)
+    
+    def get_object(self, pk):
+        event = list(Event.objects.filter(id=pk))
+        if len(event) > 0:
+            return event
+        res = {"message": "That event does not exist"}
+        return Response(res, status=ST_404)
+    
+    def delete(self, request, pk):
+        event = list(self.get_object(pk))
+        if len(event) > 0:
+            Event.objects.filter(pk=id).delete()
+            res = {"message":"Event successfully deleted"}
+            return Response(res, status=ST_204)
+        else:
+            res = {"message": "That event does not exist"}
+            return Response(res, status=ST_404)
+
+    def get(self, request, pk):
+        # self.delete(request, pk)
+        return Response(EventSerializer(get_object_or_404(Event, pk=pk)).data)
+    
+    
+"""
+    def delete(self, request, pk):
+        try:
+            event = self.get_object(pk)
+            if event.calendar.user.id == request.user.id:
+                event.delete()
+                res = {"message":"Event successfully deleted"}
+                return Response(res, status=ST_204)
+            else:
+                return Response("You can not delete an event that does not own you", status=ST_401)
+        except Exception as e:
+            res = {"message": "That event does not exist"}
+            return Response(res, status=ST_404)
+"""
+"""
+    def get(self, request, pk):
+        pk = request.events.id
+        return Response(EventSerializer(get_object_or_404(Event, pk=id)).data)
+    """
+"""
+    def delete(self, request):
+        pk = request.event.id
+        event=get_object_or_404(Event,pk=id)
+        event.delete()
+        return Response(status=ST_204)
+"""
+    
+
            
 class FilterEventView(generics.ListAPIView):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
-    filter_backends = [DjangoFilterBackend,]
-    filterset_fields = ['id',]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['description']
     
