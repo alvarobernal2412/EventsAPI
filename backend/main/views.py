@@ -11,6 +11,7 @@ from main import urls
 from . import models
 from main.models import Calendar,Event
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -52,10 +53,10 @@ class CalendarView(generics.CreateAPIView):
         serializer= CreateCalendarSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"Message":"Calendar successfully created", "user":serializer.data},status=ST_201)
+            return Response({"message": "Calendar successfully created", "user": serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
-            return Response({"Error":err},status=ST_400)
+            return Response({"error": err},status=ST_400)
 
     def put(self,request, pk):
         pass
@@ -72,11 +73,9 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(generics.CreateAPIView ):
+class EventView(APIView):
     permission_classes= (IsAuthenticated,)
     swagger_tags=["Endpoints de eventos"]   
-    
-    
     
     def returnErrors(self,dic):
         err={}
@@ -89,10 +88,10 @@ class EventView(generics.CreateAPIView ):
         #event = Events.objects.filter(user=request.user)
         events = list(Event.objects.values())
         if len(events) > 0:
-            res = {'events': events}
+            res = {"events": events}
             return Response(res, status=ST_200)
         else:
-            res = {'message': 'Events not found'}
+            res = {"message": "Events not found"}
             return Response(res, status=ST_404)
 
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
@@ -102,22 +101,23 @@ class EventView(generics.CreateAPIView ):
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"Message":"Event successfully created", "event":serializer.data},status=ST_201)
+            return Response({"message": "Event successfully created", "event": serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
+
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
     @csrf_exempt    
     def delete_event(request , event_id):
         event = Event.objects.get(pk=event_id)
         event.delete()
-        res= {'message' : 'Event has been deleted ' }
+        res= {"message" : "Event has been deleted"}
         return Response(res , status=ST_204)
            
 class FilterEventView(generics.ListAPIView):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
-    filter_backends = [DjangoFilterBackend,]
-    filterset_fields = ['id',]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['eventName']
 
     
