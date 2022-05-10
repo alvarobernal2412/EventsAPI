@@ -12,7 +12,7 @@ from . import models
 from main.models import Calendar,Event
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
-from rest_framework import generics
+from rest_framework import generics, filters
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK as ST_200,
@@ -73,9 +73,29 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(APIView):
+class EventView(generics.ListCreateAPIView):
     permission_classes= (IsAuthenticated,)
     swagger_tags=["Endpoints de eventos"]   
+
+    filter_backends = (DjangoFilterBackend,)
+
+    serializer_class = EventSerializer
+    filterset_fields = ['eventName']
+
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+    
+    def get_queryset(self, request):
+        query = Event.objects.all()
+        return query
+
+    def get(self, request):
+        events = self.filter_queryset(self.get_queryset(request))
+        serializer_class = EventSerializer(events, many=True)
+
+        return Response(serializer_class.data)
     
     def returnErrors(self,dic):
         err={}
@@ -83,7 +103,7 @@ class EventView(APIView):
         for k in keys:
                 err[k]= dic[k][0].capitalize()
         return err
-
+    """
     def get(self, request):
         #event = Events.objects.filter(user=request.user)
         events = list(Event.objects.values())
@@ -93,7 +113,7 @@ class EventView(APIView):
         else:
             res = {"message": "Events not found"}
             return Response(res, status=ST_404)
-
+    """
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
     @csrf_exempt
     def post(self, request):
