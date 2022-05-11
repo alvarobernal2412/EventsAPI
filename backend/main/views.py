@@ -73,14 +73,14 @@ class CalendarView(generics.CreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(generics.ListCreateAPIView):
+class EventView(generics.CreateAPIView):
     permission_classes= (IsAuthenticated,)
     swagger_tags=["Endpoints de eventos"]   
 
     filter_backends = (DjangoFilterBackend,)
 
     serializer_class = EventSerializer
-    filterset_fields = ['eventName']
+    filterset_fields = ['eventName', 'date']
 
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
@@ -95,7 +95,11 @@ class EventView(generics.ListCreateAPIView):
         events = self.filter_queryset(self.get_queryset(request))
         serializer_class = EventSerializer(events, many=True)
 
-        return Response(serializer_class.data)
+        if len(events) > 0:
+            return Response(serializer_class.data)
+        else:
+            res = {"message": "There are no events created yet"}
+            return Response(res, status=ST_404)
     
     def returnErrors(self,dic):
         err={}
