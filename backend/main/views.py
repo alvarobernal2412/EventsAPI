@@ -1,4 +1,141 @@
-from django.http import HttpResponse
+from importlib.resources import path
+import os
+import json
+from re import S
+from urllib import request
 
-def primerEjemplo(request): #primera vista
-    return HttpResponse("Hola mundo")
+from django.shortcuts import redirect ,  render
+
+from main import urls
+
+from . import models
+from main.models import Calendar,Event
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from rest_framework import generics, filters
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_200_OK as ST_200,
+    HTTP_201_CREATED as ST_201,
+    HTTP_204_NO_CONTENT as ST_204,
+    HTTP_400_BAD_REQUEST as ST_400,
+    HTTP_401_UNAUTHORIZED as ST_401,
+    HTTP_404_NOT_FOUND as ST_404,
+)
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .serializers import    (CreateCalendarSerializer, UserSerializer,
+                            SwaggerUserSerializer, CreateEventSerializer,
+                             SwaggerEventSerializer ,EventSerializer)
+
+class CalendarView(generics.CreateAPIView):
+    permission_classes= (AllowAny,)
+    swagger_tags=["Endpoints de registro"]  
+
+    def returnErrors(self,dic):
+        err={}
+        keys=dic.keys()
+        for k in keys:
+            if k == 'password':
+                x= dic[k][0].split(".")
+                title=x[0]+'.'+x[1]+'.'
+                err[k]= title
+            else:
+                err[k]= dic[k][0].capitalize()
+        return err
+
+    @swagger_auto_schema(request_body=UserSerializer)
+    @csrf_exempt
+    def post(self, request):
+        data = request.data.copy()
+        serializer= CreateCalendarSerializer(data=data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Calendar successfully created", "user": serializer.data},status=ST_201)
+        else:
+            err= self.returnErrors(serializer.errors)
+            return Response({"error": err},status=ST_400)
+
+    def put(self,request, pk):
+        pass
+        #if request.user != Calendar.objects.filter(pk=pk).user:
+        #    return Response("You cannot change another user data", status=ST_401)
+        #jd = json.loads(request.body)
+        #calendar = list(Calendar.objects.filter(pk=pk).values())
+        #if len(calendar) > 0 : 
+        #    calendar= calendar.objects.get(pk=pk) 
+        #    calendar.user.username = jd['username']
+        #    calendar.user.password = jd['password']
+        #    calendar.save()
+        #    return Response({"Message":"Calendar successfully updated", "user":request.data}, status=ST_204)
+        #return Response(status=ST_404)
+            
+
+class EventView(generics.CreateAPIView):
+    permission_classes= (IsAuthenticated,)
+    swagger_tags=["Endpoints de eventos"]   
+
+    filter_backends = (DjangoFilterBackend,)
+
+    serializer_class = EventSerializer
+    filterset_fields = ['eventName', 'date']
+
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+    
+    def get_queryset(self, request):
+        query = Event.objects.all()
+        return query
+
+    def get(self, request):
+        events = self.filter_queryset(self.get_queryset(request))
+        serializer_class = EventSerializer(events, many=True)
+
+        if len(events) > 0:
+            return Response(serializer_class.data)
+        else:
+            res = {"message": "There are no events created yet"}
+            return Response(res, status=ST_404)
+    
+    def returnErrors(self,dic):
+        err={}
+        keys=dic.keys()
+        for k in keys:
+                err[k]= dic[k][0].capitalize()
+        return err
+    """
+    def get(self, request):
+        #event = Events.objects.filter(user=request.user)
+        events = list(Event.objects.values())
+        if len(events) > 0:
+            res = {"events": events}
+            return Response(res, status=ST_200)
+        else:
+            res = {"message": "Events not found"}
+            return Response(res, status=ST_404)
+    """
+    @swagger_auto_schema(request_body=SwaggerEventSerializer)
+    @csrf_exempt
+    def post(self, request):
+        data = request.data.copy()
+        serializer= CreateEventSerializer(data=data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Event successfully created", "event": serializer.data},status=ST_201)
+        else:
+            err= self.returnErrors(serializer.errors)
+            return Response({"Error":err},status=ST_400)  
+
+    @swagger_auto_schema(request_body=SwaggerEventSerializer)
+    @csrf_exempt    
+    def delete(request , pk):
+        event = Event.objects.get(pk=event_id)
+        event.delete()
+        res= {"message" : "Event has been deleted"}
+        return Response(res , status=ST_204)
+           
+    
