@@ -21,6 +21,13 @@ class CreateCalendarSerializer(serializers.ModelSerializer):
         Calendar.objects.create(user=user)
         return user
 
+class CalendarIdSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Calendar
+        fields = ['id',]
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
