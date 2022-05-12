@@ -1,3 +1,4 @@
+from calendar import calendar
 from importlib.resources import path
 import os
 import json
@@ -5,6 +6,7 @@ from re import S
 from urllib import request
 
 from django.shortcuts import redirect ,  render
+from django.shortcuts import get_object_or_404
 
 from main import urls
 
@@ -26,11 +28,21 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .serializers import    (CreateCalendarSerializer, UserSerializer,
+from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
                              SwaggerEventSerializer ,EventSerializer)
 
-class CalendarView(generics.CreateAPIView):
+class CalendarIdView(APIView):
+    permission_classes = [IsAuthenticated]
+    swagger_tags= ["Endpoints de registro con id"]
+    """
+    def get(self, request):
+        calendar = Calendar.objects.get(user=request.user)
+        
+        serializer_class = CalendarIdSerializer(calendar)
+        return Response(serializer_class.data, status=ST_200)
+    """
+class CalendarView(generics.ListCreateAPIView):
     permission_classes= (AllowAny,)
     swagger_tags=["Endpoints de registro"]  
 
@@ -92,7 +104,8 @@ class EventView(generics.CreateAPIView):
         return query
 
     def get(self, request):
-        events = self.filter_queryset(self.get_queryset(request))
+        calendarId = Calendar.objects.get(user=request.user)
+        events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
         serializer_class = EventSerializer(events, many=True)
 
         if len(events) > 0:
@@ -107,17 +120,7 @@ class EventView(generics.CreateAPIView):
         for k in keys:
                 err[k]= dic[k][0].capitalize()
         return err
-    """
-    def get(self, request):
-        #event = Events.objects.filter(user=request.user)
-        events = list(Event.objects.values())
-        if len(events) > 0:
-            res = {"events": events}
-            return Response(res, status=ST_200)
-        else:
-            res = {"message": "Events not found"}
-            return Response(res, status=ST_404)
-    """
+ 
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
     @csrf_exempt
     def post(self, request):
@@ -130,12 +133,32 @@ class EventView(generics.CreateAPIView):
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
 
-    @swagger_auto_schema(request_body=SwaggerEventSerializer)
+class EventIdView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self,pk):
+        try:
+            return Event.objects.get(id=pk)
+        except Event.DoesNotExist:
+            raise Response(ST_404)
+
+    @swagger_auto_schema(tags=["Endpoints de eventos con id"])
     @csrf_exempt    
-    def delete(request , pk):
-        event = Event.objects.get(pk=event_id)
-        event.delete()
-        res= {"message" : "Event has been deleted"}
-        return Response(res , status=ST_204)
+    def delete(self, request , pk):
+        event = self.get_object(pk)
+        calendarId = Calendar.objects.get(user=request.user)
+        eventList =  []
+        eventList.append(event)
+        if len(eventList) == 0:
+            res= {"message" : "This event does not exist"} # No funciona correctamente
+            return Response(res , status=ST_404)
+        elif event in Event.objects.filter(calendar=calendarId): 
+            event.delete()
+            res= {"message" : "Event successfully deleted"}
+            return Response(res , status=ST_204)
+        else:
+            res= {"message" : "You can only delete events form your calendar"}
+            return Response(res , status=ST_401)
+
            
     
