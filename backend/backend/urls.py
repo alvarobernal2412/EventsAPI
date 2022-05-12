@@ -22,19 +22,18 @@ from rest_framework.permissions import AllowAny
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="AparkApp Backend API",
+        title="EventsAPI",
         default_version='v1',
         description="This is the API to connect EventsAPI Backend",
-        contact=openapi.Contact(email="aparkapp.info@gmail.com"),
+        contact=openapi.Contact(email="alvarobc2412@gmail.com"),
     ),
     public=True,
     permission_classes=(AllowAny,),
 )
 
 urlpatterns = [
-    path('', schema_view.with_ui('swagger', cache_timeout=0),name='schema-swagger-ui'),
-    re_path(r'^docs(?P<format>\.json|\.yaml)$',schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0),name='schema-redoc'),
+    re_path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('admin/', admin.site.urls),
     path('api/', include('main.urls')),
 ]

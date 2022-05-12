@@ -132,16 +132,10 @@ class EventView(generics.CreateAPIView):
 
     @swagger_auto_schema(request_body=SwaggerEventSerializer)
     @csrf_exempt    
-    def delete_event(request , event_id):
+    def delete(request , pk):
         event = Event.objects.get(pk=event_id)
         event.delete()
         res= {"message" : "Event has been deleted"}
         return Response(res , status=ST_204)
            
-class FilterEventView(generics.ListAPIView):
-    serializer_class = EventSerializer
-    queryset = Event.objects.all()
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['eventName']
-
     
