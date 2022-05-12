@@ -70,13 +70,14 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization' 
         }
     }, 
-   'DEFAULT_AUTO_SCHEMA_CLASS': 'api.models.CustomSwaggerAutoSchema',
-}
+   #'DEFAULT_AUTO_SCHEMA_CLASS': '.models.CustomSwaggerAutoSchema',
+} 
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': (
