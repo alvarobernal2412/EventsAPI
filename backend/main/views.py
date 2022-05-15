@@ -34,7 +34,6 @@ from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, Use
 
 class CalendarIdView(APIView):
     permission_classes = [IsAuthenticated]
-    swagger_tags= ["Endpoints de registro con id"]
     """
     def get(self, request):
         calendar = Calendar.objects.get(user=request.user)
@@ -42,9 +41,8 @@ class CalendarIdView(APIView):
         serializer_class = CalendarIdSerializer(calendar)
         return Response(serializer_class.data, status=ST_200)
     """
-class CalendarView(generics.ListCreateAPIView):
-    permission_classes= (AllowAny,)
-    swagger_tags=["Endpoints de registro"]  
+class CalendarView(APIView):
+    permission_classes= (AllowAny,) 
 
     def returnErrors(self,dic):
         err={}
@@ -85,9 +83,8 @@ class CalendarView(generics.ListCreateAPIView):
         #return Response(status=ST_404)
             
 
-class EventView(generics.CreateAPIView):
-    permission_classes= (IsAuthenticated,)
-    swagger_tags=["Endpoints de eventos"]   
+class EventView(APIView):
+    permission_classes= (IsAuthenticated,)  
 
     filter_backends = (DjangoFilterBackend,)
 
@@ -103,6 +100,8 @@ class EventView(generics.CreateAPIView):
         query = Event.objects.all()
         return query
 
+    #paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event Name',type=openapi.TYPE_STRING)
+    @swagger_auto_schema()
     def get(self, request):
         calendarId = Calendar.objects.get(user=request.user)
         events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
@@ -121,7 +120,7 @@ class EventView(generics.CreateAPIView):
                 err[k]= dic[k][0].capitalize()
         return err
  
-    @swagger_auto_schema(request_body=SwaggerEventSerializer)
+    @swagger_auto_schema(request_body=EventSerializer)
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
@@ -142,7 +141,7 @@ class EventIdView(APIView):
         except Event.DoesNotExist:
             raise Response(ST_404)
 
-    @swagger_auto_schema(tags=["Endpoints de eventos con id"])
+    @swagger_auto_schema()
     @csrf_exempt    
     def delete(self, request , pk):
         event = self.get_object(pk)
