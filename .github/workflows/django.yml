@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.9]
 
     steps:
     - uses: actions/checkout@v3
@@ -30,4 +30,16 @@ jobs:
       run: |
         cd backend
         python manage.py test
-    
+        
+  deploy:
+      needs: build
+      if: ${{github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'}}
+      name: Heroku
+      runs-on: macos-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: AkhileshNS/heroku-deploy@v3.12.12
+          with:
+            heroku_api_key: ${{secrets.HEROKU_API_KEY_1}}
+            heroku_app_name: ${{secrets.HEROKU_API_KEY_2}}
+            heroku_email: "alvarobc2412@gmail.com"
