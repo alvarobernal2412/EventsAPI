@@ -31,15 +31,10 @@ jobs:
         cd backend
         python manage.py test
         
-  deploy:
-      needs: build
-      if: ${{github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'}}
-      name: Heroku
-      runs-on: macos-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: AkhileshNS/heroku-deploy@v3.12.12
-          with:
-            heroku_api_key: ${{secrets.HEROKU_API_KEY_1}}
-            heroku_app_name: ${{secrets.HEROKU_API_KEY_2}}
-            heroku_email: "alvarobc2412@gmail.com"
+    - name: Add remote origin
+      if:  github.ref == 'refs/heads/main' && job.status == 'success'
+      run: |
+        git remote add heroku https://heroku:${{secrets.HEROKU_API_KEY_1}}@git.heroku.com/${{secrets.HEROKU_API_KEY_2}}
+    - name: Deploy to Heroku
+      run: |
+        git push heroku main
