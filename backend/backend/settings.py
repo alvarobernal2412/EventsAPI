@@ -142,7 +142,7 @@ from decouple import config
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresqls',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'd4qor8jl1kugdo',
         'USER': 'twzcrfgauoqlon',
         'PASSWORD': 'b5b351181517461dd6297c27bd6f5a3b2085ca4f236687308201c6eef42514ec',
