@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-r43l^m40ayi7b)h47+^1+t!(mtfm#7jrv-n)e&kf)bz^te*qj#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*',]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -142,11 +142,11 @@ from decouple import config
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'events_api_db',
-        'USER': 'postgres',
-        'PASSWORD': 'events4321api',
-        'HOST': '127.0.0.1',
+        'ENGINE': 'django.db.backends.postgresqls',
+        'NAME': 'd4qor8jl1kugdo',
+        'USER': 'twzcrfgauoqlon',
+        'PASSWORD': 'b5b351181517461dd6297c27bd6f5a3b2085ca4f236687308201c6eef42514ec',
+        'HOST': 'ec2-52-30-67-143.eu-west-1.compute.amazonaws.com',
         'DATABASE_PORT': '5432',
     }
 }
