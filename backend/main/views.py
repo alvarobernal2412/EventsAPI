@@ -41,6 +41,9 @@ class CalendarIdView(APIView):
         serializer_class = CalendarIdSerializer(calendar)
         return Response(serializer_class.data, status=ST_200)
     """
+
+
+#Class to define Calendar methods 
 class CalendarView(APIView):
     permission_classes= (AllowAny,) 
 
@@ -56,6 +59,7 @@ class CalendarView(APIView):
                 err[k]= dic[k][0].capitalize()
         return err
 
+    #Below appears the code to generate the body in Swagger documentation
     @swagger_auto_schema(request_body=UserSerializer)
     @csrf_exempt
     def post(self, request):
@@ -81,8 +85,9 @@ class CalendarView(APIView):
         #    calendar.save()
         #    return Response({"Message":"Calendar successfully updated", "user":request.data}, status=ST_204)
         #return Response(status=ST_404)
-            
-
+ 
+           
+#Class to define Events methods 
 class EventView(APIView):
     permission_classes= (IsAuthenticated,)  
 
@@ -131,6 +136,8 @@ class EventView(APIView):
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
+
+
 
 class EventIdView(APIView):
     permission_classes = [IsAuthenticated]
