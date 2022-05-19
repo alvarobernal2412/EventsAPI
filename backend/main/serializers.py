@@ -1,5 +1,6 @@
 from dataclasses import field, fields
 from datetime import date
+from datetime import time
 
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -53,19 +54,6 @@ class CreateEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'eventName', 'description', 'city', 'date', 'time', 'weather','calendar')
-
-    def create(self, validatedData):
-        event = Event.objects.create(
-            eventName=validatedData['eventName'], 
-            description=validatedData['description'],
-            city=validatedData['city'],
-            date=validatedData['date'], 
-            time=validatedData['time'],
-            weather=validatedData['weather'],  
-            calendar=validatedData['calendar']
-        )
-        event.save()
-        return event
 
 
 class EventSerializer(serializers.ModelSerializer):

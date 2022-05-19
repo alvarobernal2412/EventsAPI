@@ -66,19 +66,15 @@ class CalendarView(APIView):
             err= self.returnErrors(serializer.errors)
             return Response({"error": err},status=ST_400)
 
-    def put(self,request, pk):
-        pass
-        #if request.user != Calendar.objects.filter(pk=pk).user:
-        #    return Response("You cannot change another user data", status=ST_401)
-        #jd = json.loads(request.body)
-        #calendar = list(Calendar.objects.filter(pk=pk).values())
-        #if len(calendar) > 0 : 
-        #    calendar= calendar.objects.get(pk=pk) 
-        #    calendar.user.username = jd['username']
-        #    calendar.user.password = jd['password']
-        #    calendar.save()
-        #    return Response({"Message":"Calendar successfully updated", "user":request.data}, status=ST_204)
-        #return Response(status=ST_404)
+    @swagger_auto_schema(request_body=UserSerializer)
+    def put(self,request):
+        #If an user is not authenticated, throw the 401 error.
+        if request.user.is_anonymous:
+            return Response({"Error":"You must authenticate to update your user"},status=ST_401)
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"User succesfully updated":serializer.data["username"]}, status=ST_200)
 
     def delete(self, request):
         #If an user is not authenticated, throw the 401 error.
@@ -138,10 +134,12 @@ class EventView(APIView):
         data = request.data.copy()
         calendar = Calendar.objects.get(user=request.user)
         data['calendar'] = calendar.id
-
-        data['weather'] = get_weather(data['city'], data['date'], data['time'])
-        if data['weather'] is None:
-            data['weather'] = "Weather is only available within the next 5 days"
+        if 'city' in request.data:
+            data['weather'] = get_weather(data['city'], data['date'], data['time'])
+            if data['weather'] is None:
+                data['weather'] = "Weather is only available within the next 5 days"
+        else:
+            data['weather']='Undefined'
 
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
@@ -161,6 +159,26 @@ class EventIdView(APIView):
             return Event.objects.get(id=pk)
         except Event.DoesNotExist:
             raise Response(ST_404)
+
+    @swagger_auto_schema(request_body=EventSerializer)
+    def put(self, request , pk):
+        event = self.get_object(pk)
+        calendarId = Calendar.objects.get(user=request.user)
+        if event.calendar != calendarId:
+            return Response("You can't edit another user's event", status=ST_401)
+        else:
+            data = request.data.copy()
+            data["calendar"]=calendarId.id
+            if "eventName" not in data:
+                data["eventName"]= event.eventName
+            if "date" not in data:
+                data["date"]= event.date
+            serializer= CreateEventSerializer(event,data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=ST_200)
+            return Response(serializer.errors , status=ST_400)
+
 
     @swagger_auto_schema()
     @csrf_exempt    
