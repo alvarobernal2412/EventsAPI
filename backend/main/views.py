@@ -113,7 +113,7 @@ class EventView(APIView):
     def get(self, request):
         calendarId = Calendar.objects.get(user=request.user)
         events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
-        serializer_class = EventSerializer(events, many=True)
+        serializer_class = CreateEventSerializer(events, many=True)
 
         if len(events) > 0:
             return Response(serializer_class.data)
@@ -134,17 +134,20 @@ class EventView(APIView):
         data = request.data.copy()
         calendar = Calendar.objects.get(user=request.user)
         data['calendar'] = calendar.id
-        if 'city' in request.data:
+        if 'city' and 'time' in request.data:
             data['weather'] = get_weather(data['city'], data['date'], data['time'])
             if data['weather'] is None:
                 data['weather'] = "Weather is only available within the next 5 days"
+            message="Event successfully created"
         else:
             data['weather']='Undefined'
-
+            message="Event successfully created. If you want to get the weather, time and city are required"
+        
+        
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Event successfully created", "event": serializer.data},status=ST_201)
+            return Response({"message": message, "event": serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
