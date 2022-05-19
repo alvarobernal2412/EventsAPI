@@ -15,7 +15,7 @@ class Event(models.Model):
     city=models.CharField(max_length=50, blank=True,default='') 
     date=models.DateField()
     time=models.TimeField(blank=True, default='00:00:00')
-    weather=models.CharField(max_length=500, blank=True, default='')#Changed null=True by default because of being a Char
+    weather=models.CharField(max_length=500, blank=True, default='') # Changed null=True by default because of being a Char
     calendar=models.ForeignKey(Calendar,on_delete=models.CASCADE)
 
     def __str__(self):

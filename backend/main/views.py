@@ -161,7 +161,7 @@ class EventIdView(APIView):
         try:
             return Event.objects.get(id=pk)
         except Event.DoesNotExist:
-            raise Response(ST_404)
+            return Response(ST_404)
 
     @swagger_auto_schema(request_body=EventSerializer)
     def put(self, request , pk):
@@ -177,10 +177,20 @@ class EventIdView(APIView):
             if "date" not in data:
                 data["date"]= event.date
             serializer= CreateEventSerializer(event,data=data)
+
+            if 'city' and 'time' in request.data:
+                data['weather'] = get_weather(data['city'], data['date'], data['time'])
+                if data['weather'] is None:
+                    data['weather'] = "Weather is only available within the next 5 days"
+                message="Event successfully updated"
+            else:
+                data['weather']='Undefined'
+                message="Event successfully updated. If you want to get the weather, time and city are required"
+
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data,status=ST_200)
-            return Response(serializer.errors , status=ST_400)
+                return Response({"message": message, "event": serializer.data}, status=ST_204)
+            return Response(serializer.errors, status=ST_400)
 
 
     @swagger_auto_schema()
@@ -190,16 +200,13 @@ class EventIdView(APIView):
         calendarId = Calendar.objects.get(user=request.user)
         eventList =  []
         eventList.append(event)
-        if len(eventList) == 0:
-            res= {"message" : "This event does not exist"} # No funciona correctamente
-            return Response(res , status=ST_404)
-        elif event in Event.objects.filter(calendar=calendarId): 
+        if event in Event.objects.filter(calendar=calendarId): 
             event.delete()
             res= {"message" : "Event successfully deleted"}
             return Response(res , status=ST_204)
         else:
-            res= {"message" : "You can only delete events form your calendar"}
-            return Response(res , status=ST_401)
+            res= {"message" : "You can only delete events that exist on your calendar"}
+            return Response(res , status=ST_404)
 
            
     
