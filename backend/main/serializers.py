@@ -52,7 +52,7 @@ class CreateEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather', 'calendar')
+        fields = ('id', 'eventName', 'description', 'date', 'time', 'weather','calendar')
 
     def create(self, validatedData):
         event = Event.objects.create(
@@ -60,8 +60,8 @@ class CreateEventSerializer(serializers.ModelSerializer):
             description=validatedData['description'],
             date=validatedData['date'], 
             time=validatedData['time'],
-            weather=validatedData['weather'], 
-            calendar=validatedData['calendar'],  
+            weather=validatedData['weather'],  
+            calendar=validatedData['calendar']
         )
         event.save()
         return event
@@ -71,7 +71,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ('eventName', 'description', 'date', 'time', 'weather')
 
 #Serializer that gives Swagger Events structure
 class SwaggerEventSerializer(serializers.ModelSerializer):

@@ -26,21 +26,13 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
                              SwaggerEventSerializer ,EventSerializer)
-
-class CalendarIdView(APIView):
-    permission_classes = [IsAuthenticated]
-    """
-    def get(self, request):
-        calendar = Calendar.objects.get(user=request.user)
-        
-        serializer_class = CalendarIdSerializer(calendar)
-        return Response(serializer_class.data, status=ST_200)
-    """
+from django.contrib.auth.models import User
 
 
 #Class to define Calendar methods 
@@ -85,6 +77,17 @@ class CalendarView(APIView):
         #    calendar.save()
         #    return Response({"Message":"Calendar successfully updated", "user":request.data}, status=ST_204)
         #return Response(status=ST_404)
+
+    def delete(self, request):
+        if request.user.is_anonymous:
+            return Response({"Error":"You must authenticate to delete your calendar and user"},status=ST_401)
+
+        calendar = Calendar.objects.get(user=request.user)
+        calendar.delete()
+        pk = request.user.id
+        user=get_object_or_404(User,pk=pk)
+        user.delete()
+        return Response(status=ST_204)
  
            
 #Class to define Events methods 
@@ -129,6 +132,8 @@ class EventView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
+        calendar = Calendar.objects.get(user=request.user)
+        data['calendar']= calendar.id
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()

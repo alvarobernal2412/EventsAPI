@@ -6,7 +6,6 @@ urlpatterns = [
 
     #Calendar methods - Post, Put and Delete
     path('calendar/', views.CalendarView.as_view()),
-    path('calendar/id/', views.CalendarIdView.as_view()),
 
     #Events methods - Get and Post 
     path('events/', views.EventView.as_view()),
