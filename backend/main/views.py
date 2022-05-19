@@ -79,9 +79,11 @@ class CalendarView(APIView):
         #return Response(status=ST_404)
 
     def delete(self, request):
+        #If an user is not authenticated, throw the 401 error.
         if request.user.is_anonymous:
             return Response({"Error":"You must authenticate to delete your calendar and user"},status=ST_401)
 
+        #Now we delete the calendar and the user without using id , just using the JSON Web token
         calendar = Calendar.objects.get(user=request.user)
         calendar.delete()
         pk = request.user.id
