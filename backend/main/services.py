@@ -31,14 +31,14 @@ def get_weather(city, date, time, params={}):
 
     if response:
         weather = response
-        if days_diff <= 4:
+        if  0 <= days_diff <= 4:
             if night_start <= time or time <= night_end:
                 print(weather['DailyForecasts'][days_diff]['Night']['IconPhrase'])
-                return weather['DailyForecasts'][days_diff]['Night']['IconPhrase']
+                return str(weather['DailyForecasts'][days_diff]['Night']['IconPhrase'])
             else:
                 print(weather['DailyForecasts'][days_diff]['Day']['IconPhrase'])
-                return weather['DailyForecasts'][days_diff]['Day']['IconPhrase']
+                return str(weather['DailyForecasts'][days_diff]['Day']['IconPhrase'])
 
 if __name__ == "__main__":
-    get_weather('Seville', "2022-05-11", "21:00:00")
+    get_weather("Seville", "2022-05-20", "15:00:00")
     

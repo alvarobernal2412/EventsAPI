@@ -34,6 +34,8 @@ from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, Use
                              SwaggerEventSerializer ,EventSerializer)
 from django.contrib.auth.models import User
 
+from .services import get_weather
+
 
 #Class to define Calendar methods 
 class CalendarView(APIView):
@@ -135,7 +137,12 @@ class EventView(APIView):
     def post(self, request):
         data = request.data.copy()
         calendar = Calendar.objects.get(user=request.user)
-        data['calendar']= calendar.id
+        data['calendar'] = calendar.id
+
+        data['weather'] = get_weather(data['city'], data['date'], data['time'])
+        if data['weather'] is None:
+            data['weather'] = "Weather is only available within the next 5 days"
+
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
