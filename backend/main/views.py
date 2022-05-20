@@ -176,20 +176,31 @@ class EventIdView(APIView):
                 data["eventName"]= event.eventName
             if "date" not in data:
                 data["date"]= event.date
-            serializer= CreateEventSerializer(event,data=data)
+            if "time" not in data:
+                data["time"]= event.time
+            if "city" not in data:
+                data["city"]= event.city
 
-            if 'city' and 'time' in request.data:
-                data['weather'] = get_weather(data['city'], data['date'], data['time'])
+            if (event.city=='' and event.time is None):
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, time and city are required"
+            elif event.city=='':
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, city is required"
+            elif event.time is None:
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, time is required"
+            else:
+                data['weather'] = get_weather(data['city'], str(data['date']), str(data['time']))
                 if data['weather'] is None:
                     data['weather'] = "Weather is only available within the next 5 days"
-                message="Event successfully updated"
-            else:
-                data['weather']='Undefined'
-                message="Event successfully updated. If you want to get the weather, time and city are required"
+                #message="Event successfully updated" 
 
+            
+            serializer= CreateEventSerializer(event,data=data)
             if serializer.is_valid():
                 serializer.save()
-                return Response({"message": message, "event": serializer.data}, status=ST_204)
+                return Response(status=ST_204)#{"message": message, "event": serializer.data} 204 dont have response body
             return Response(serializer.errors, status=ST_400)
 
 
