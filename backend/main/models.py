@@ -20,4 +20,16 @@ class Event(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+class GlobalEvent(models.Model):
+    id=models.AutoField(primary_key=True)
+    globalName=models.CharField(max_length=50)
+    description=models.CharField(max_length=500)
+    organizer=models.CharField(max_length=50)
+    category=models.CharField(max_length=50)
+    location=models.CharField(max_length=50)
+    date=models.DateField()
+
+    def __str__(self):
+        return str(self.id)
         

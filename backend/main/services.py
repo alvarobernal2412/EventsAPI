@@ -1,4 +1,7 @@
 # File for consuming AccuWeather API
+import json
+from turtle import pos
+from urllib import response
 import requests
 from datetime import datetime
 
@@ -33,12 +36,32 @@ def get_weather(city, date, time, params={}):
         weather = response
         if  0 <= days_diff <= 4:
             if night_start <= time or time <= night_end:
-                print(weather['DailyForecasts'][days_diff]['Night']['IconPhrase'])
                 return str(weather['DailyForecasts'][days_diff]['Night']['IconPhrase'])
             else:
-                print(weather['DailyForecasts'][days_diff]['Day']['IconPhrase'])
                 return str(weather['DailyForecasts'][days_diff]['Day']['IconPhrase'])
 
+def get_global_events():
+    response = generate_request('https://city-events-api.ew.r.appspot.com/api/events')
+    if response:
+        return response
+
+def post_global_event(name, description, organizer, category, location, date):
+    response = requests.post('https://city-events-api.ew.r.appspot.com/api/events', 
+        json={"name": name,
+            "description": description,
+            "organizer": organizer,
+            "category": category,
+            "location": location,
+            "date": date           
+            })
+    if response:
+        return (response.status_code, response.json())
+
+        
+
 if __name__ == "__main__":
-    get_weather("Seville", "2022-05-20", "15:00:00")
+    # get_global_events()
+    post_global_event("NewEvent5", "NewEvent5 desc", "Me", "Try", "Seville", "2022-05-23")
+
+
     
