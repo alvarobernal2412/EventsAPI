@@ -1,3 +1,4 @@
+from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -10,10 +11,11 @@ class Calendar(models.Model):
 class Event(models.Model):
     id=models.AutoField(primary_key=True) 
     eventName=models.CharField(max_length=50)
-    description=models.CharField(max_length=500)
-    date= models.DateField()
-    time= models.TimeField()
-    weather=models.CharField(max_length=500)
+    description=models.CharField(max_length=500, blank=True)
+    city=models.CharField(max_length=50, blank=True,default='') 
+    date=models.DateField()
+    time=models.TimeField(blank=True, null=True)
+    weather=models.CharField(max_length=500, blank=True, default='') # Changed null=True by default because of being a Char
     calendar=models.ForeignKey(Calendar,on_delete=models.CASCADE)
 
     def __str__(self):

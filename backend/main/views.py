@@ -26,21 +26,18 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
                              SwaggerEventSerializer ,EventSerializer)
+from django.contrib.auth.models import User
 
-class CalendarIdView(APIView):
-    permission_classes = [IsAuthenticated]
-    """
-    def get(self, request):
-        calendar = Calendar.objects.get(user=request.user)
-        
-        serializer_class = CalendarIdSerializer(calendar)
-        return Response(serializer_class.data, status=ST_200)
-    """
+from .services import get_weather
+
+
+#Class to define Calendar methods 
 class CalendarView(APIView):
     permission_classes= (AllowAny,) 
 
@@ -56,6 +53,7 @@ class CalendarView(APIView):
                 err[k]= dic[k][0].capitalize()
         return err
 
+    #Below appears the code to generate the body in Swagger documentation
     @swagger_auto_schema(request_body=UserSerializer)
     @csrf_exempt
     def post(self, request):
@@ -68,21 +66,31 @@ class CalendarView(APIView):
             err= self.returnErrors(serializer.errors)
             return Response({"error": err},status=ST_400)
 
-    def put(self,request, pk):
-        pass
-        #if request.user != Calendar.objects.filter(pk=pk).user:
-        #    return Response("You cannot change another user data", status=ST_401)
-        #jd = json.loads(request.body)
-        #calendar = list(Calendar.objects.filter(pk=pk).values())
-        #if len(calendar) > 0 : 
-        #    calendar= calendar.objects.get(pk=pk) 
-        #    calendar.user.username = jd['username']
-        #    calendar.user.password = jd['password']
-        #    calendar.save()
-        #    return Response({"Message":"Calendar successfully updated", "user":request.data}, status=ST_204)
-        #return Response(status=ST_404)
-            
+    @swagger_auto_schema(request_body=UserSerializer)
+    def put(self,request):
+        #If an user is not authenticated, throw the 401 error.
+        if request.user.is_anonymous:
+            return Response({"Error":"You must authenticate to update your user"},status=ST_401)
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"User succesfully updated":serializer.data["username"]}, status=ST_200)
 
+    def delete(self, request):
+        #If an user is not authenticated, throw the 401 error.
+        if request.user.is_anonymous:
+            return Response({"Error":"You must authenticate to delete your calendar and user"},status=ST_401)
+
+        #Now we delete the calendar and the user without using id , just using the JSON Web token
+        calendar = Calendar.objects.get(user=request.user)
+        calendar.delete()
+        pk = request.user.id
+        user=get_object_or_404(User,pk=pk)
+        user.delete()
+        return Response(status=ST_204)
+ 
+           
+#Class to define Events methods 
 class EventView(APIView):
     permission_classes= (IsAuthenticated,)  
 
@@ -105,7 +113,7 @@ class EventView(APIView):
     def get(self, request):
         calendarId = Calendar.objects.get(user=request.user)
         events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
-        serializer_class = EventSerializer(events, many=True)
+        serializer_class = CreateEventSerializer(events, many=True)
 
         if len(events) > 0:
             return Response(serializer_class.data)
@@ -124,13 +132,27 @@ class EventView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
+        calendar = Calendar.objects.get(user=request.user)
+        data['calendar'] = calendar.id
+        if 'city' and 'time' in request.data:
+            data['weather'] = get_weather(data['city'], data['date'], data['time'])
+            if data['weather'] is None:
+                data['weather'] = "Weather is only available within the next 5 days"
+            message="Event successfully created"
+        else:
+            data['weather']='Undefined'
+            message="Event successfully created. If you want to get the weather, time and city are required"
+        
+        
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Event successfully created", "event": serializer.data},status=ST_201)
+            return Response({"message": message, "event": serializer.data},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
+
+
 
 class EventIdView(APIView):
     permission_classes = [IsAuthenticated]
@@ -139,7 +161,48 @@ class EventIdView(APIView):
         try:
             return Event.objects.get(id=pk)
         except Event.DoesNotExist:
-            raise Response(ST_404)
+            return Response(ST_404)
+
+    @swagger_auto_schema(request_body=EventSerializer)
+    def put(self, request , pk):
+        event = self.get_object(pk)
+        calendarId = Calendar.objects.get(user=request.user)
+        if event.calendar != calendarId:
+            return Response("You can't edit another user's event", status=ST_401)
+        else:
+            data = request.data.copy()
+            data["calendar"]=calendarId.id
+            if "eventName" not in data:
+                data["eventName"]= event.eventName
+            if "date" not in data:
+                data["date"]= event.date
+            if "time" not in data:
+                data["time"]= event.time
+            if "city" not in data:
+                data["city"]= event.city
+
+            if (event.city=='' and event.time is None):
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, time and city are required"
+            elif event.city=='':
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, city is required"
+            elif event.time is None:
+                data['weather']='Undefined'
+                #message="Event successfully updated. If you want to get the weather, time is required"
+            else:
+                data['weather'] = get_weather(data['city'], str(data['date']), str(data['time']))
+                if data['weather'] is None:
+                    data['weather'] = "Weather is only available within the next 5 days"
+                #message="Event successfully updated" 
+
+            
+            serializer= CreateEventSerializer(event,data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(status=ST_204)#{"message": message, "event": serializer.data} 204 dont have response body
+            return Response(serializer.errors, status=ST_400)
+
 
     @swagger_auto_schema()
     @csrf_exempt    
@@ -148,16 +211,13 @@ class EventIdView(APIView):
         calendarId = Calendar.objects.get(user=request.user)
         eventList =  []
         eventList.append(event)
-        if len(eventList) == 0:
-            res= {"message" : "This event does not exist"} # No funciona correctamente
-            return Response(res , status=ST_404)
-        elif event in Event.objects.filter(calendar=calendarId): 
+        if event in Event.objects.filter(calendar=calendarId): 
             event.delete()
             res= {"message" : "Event successfully deleted"}
             return Response(res , status=ST_204)
         else:
-            res= {"message" : "You can only delete events form your calendar"}
-            return Response(res , status=ST_401)
+            res= {"message" : "You can only delete events that exist on your calendar"}
+            return Response(res , status=ST_404)
 
            
     
