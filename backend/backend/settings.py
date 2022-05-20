@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure-r43l^m40ayi7b)h47+^1+t!(mtfm#7jrv-n)e&kf)bz^te*qj#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*',]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 SWAGGER_SETTINGS = {
@@ -135,15 +137,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+import dj_database_url
+from decouple import config
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'events_api_db',
-        'USER': 'postgres',
-        'PASSWORD': 'events4321api',
-        'HOST': '127.0.0.1',
-        'DATABASE_PORT': '5432'
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'd4qor8jl1kugdo',
+        'USER': 'twzcrfgauoqlon',
+        'PASSWORD': 'b5b351181517461dd6297c27bd6f5a3b2085ca4f236687308201c6eef42514ec',
+        'HOST': 'ec2-52-30-67-143.eu-west-1.compute.amazonaws.com',
+        'DATABASE_PORT': '5432',
     }
 }
 
@@ -182,9 +186,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = 'static/'
+
+#STATICFILES_DIRS = (
+#    os.path.join(BASE_DIR, 'static'),
+#)
+
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import django_heroku
+
+django_heroku.settings(locals())
