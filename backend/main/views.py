@@ -256,21 +256,36 @@ class GlobalEventsView(APIView):
         data["id"] = id
         serializer= GlobalEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
-            serializer.save()
-            return Response({eventCode:"Global Event created successfully", "Event": eventResponse},status=ST_201)
+            serializer.save() # al comentar esta línea no se guarda en la base de datos
+            return Response({eventCode:"Global Event successfully created", "Event": eventResponse},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
     
 class GlobalEventsIdView(APIView):
 
-    def delete(self,request,pk):
-        data= get_global_events_id(pk)
+    def delete(self, request, pk):
+        globalEventInDB = GlobalEvent.objects.get(id=pk)  # Problema: ¿qué devuelve si el evento no existe en la DB?
+        if globalEventInDB is not None:
+            code = delete_global_events(pk)
+            if code == 204:
+                globalEventInDB.delete()
+                res= {"message" : "Global event successfully deleted"}
+                return Response(res, status=ST_204)
+            else:
+                res= {"message" : "Global event not found"}
+                return Response(res, status=ST_404)
+        else:
+            res= {"message" : "You can only delete global events created from EventsAPI"}
+            return Response(res, status=ST_401)
+
+        """
         nameD = data["name"]
-        globalEvent= GlobalEvent.objects.get(name=nameD)
+        globalEvent= GlobalEvent.objects.get(name=nameD) #id=pk
         globalEvent.delete()
         deleteCode = delete_global_events(pk)
         if deleteCode=='204':
             return Response(status=ST_204)
         elif deleteCode=='404':
-            return Response({'Error':'Global event not found'},status=ST_404) 
+            return Response({'Error':'Global event not found'},status=ST_404)
+        """
