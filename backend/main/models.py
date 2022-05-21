@@ -28,7 +28,7 @@ class GlobalEvent(models.Model):
     organizer=models.CharField(max_length=50)
     category=models.CharField(max_length=50)
     location=models.CharField(max_length=50)
-    date=models.DateField()
+    date=models.CharField(max_length=50)
 
     def __str__(self):
         return str(self.id)
