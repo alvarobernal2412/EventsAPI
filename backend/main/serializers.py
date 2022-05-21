@@ -74,7 +74,7 @@ class GlobalEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GlobalEvent
-        fields = ('name', 'description', 'organizer', 'category', 'location','date')
+        fields = ('id', 'name', 'description', 'organizer', 'category', 'location','date')
 
 class GetGlobalEventSerializer(serializers.ModelSerializer):
 

@@ -252,6 +252,8 @@ class GlobalEventsView(APIView):
         location=data["location"]
         date=data["date"]
         (eventCode,eventResponse) = post_global_event(name,description,organizer,category,location,date)
+        id=eventResponse["id"]
+        data["id"] = id
         serializer= GlobalEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save()
@@ -260,9 +262,6 @@ class GlobalEventsView(APIView):
             err= self.returnErrors(serializer.errors)
             return Response({"Error":err},status=ST_400)  
     
-
-
-
 class GlobalEventsIdView(APIView):
 
     def delete(self,request,pk):
