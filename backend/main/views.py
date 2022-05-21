@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from main import urls
 
 from . import models
-from main.models import Calendar,Event
+from main.models import Calendar,Event,GlobalEvent
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework import generics, filters
@@ -31,10 +31,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, UserSerializer,
                             SwaggerUserSerializer, CreateEventSerializer,
-                             SwaggerEventSerializer ,EventSerializer)
+                            SwaggerEventSerializer ,EventSerializer, 
+                            GlobalEventSerializer, GetGlobalEventSerializer)
 from django.contrib.auth.models import User
 
-from .services import get_weather
+from .services import (get_weather, get_global_events, post_global_event,delete_global_events, get_global_events_id)
 
 
 #Class to define Calendar methods 
@@ -220,4 +221,57 @@ class EventIdView(APIView):
             return Response(res , status=ST_404)
 
            
+
+class GlobalEventsView(APIView):
+
+    def returnErrors(self,dic):
+        err={}
+        keys=dic.keys()
+        for k in keys:
+                err[k]= dic[k][0].capitalize()
+        return err
     
+    @swagger_auto_schema()
+    def get(self,request):
+        globalEvents= get_global_events()
+        serializer_class = GetGlobalEventSerializer(globalEvents, many=True)
+
+        if len(globalEvents) > 0:
+            return Response(serializer_class.data)
+        else:
+            res = {"Message": "There are no events created yet"}
+            return Response(res, status=ST_404)
+
+    @swagger_auto_schema(request_body=GlobalEventSerializer)
+    def post(self,request):
+        data = request.data.copy()
+        name=data["name"]
+        description=data["description"]
+        organizer=data["organizer"]
+        category=data["category"]
+        location=data["location"]
+        date=data["date"]
+        (eventCode,eventResponse) = post_global_event(name,description,organizer,category,location,date)
+        serializer= GlobalEventSerializer(data=data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({eventCode:"Global Event created successfully", "Event": eventResponse},status=ST_201)
+        else:
+            err= self.returnErrors(serializer.errors)
+            return Response({"Error":err},status=ST_400)  
+    
+
+
+
+class GlobalEventsIdView(APIView):
+
+    def delete(self,request,pk):
+        data= get_global_events_id(pk)
+        nameD = data["name"]
+        globalEvent= GlobalEvent.objects.get(name=nameD)
+        globalEvent.delete()
+        deleteCode = delete_global_events(pk)
+        if deleteCode=='204':
+            return Response(status=ST_204)
+        elif deleteCode=='404':
+            return Response({'Error':'Global event not found'},status=ST_404) 

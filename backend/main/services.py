@@ -55,13 +55,23 @@ def post_global_event(name, description, organizer, category, location, date):
             "date": date           
             })
     if response:
-        return (response.status_code, response.json())
+        return (response.status_code,response.json())
 
-        
+def delete_global_events(id):
+    response = requests.delete('https://city-events-api.ew.r.appspot.com/api/events'+"/"+id+"/")
+    if response:
+        return response.status_code
 
+def get_global_events_id(id):
+    response = generate_request('https://city-events-api.ew.r.appspot.com/api/events'+"/"+id+"/")
+    if response:
+        return response
+
+
+'''
 if __name__ == "__main__":
-    # get_global_events()
-    post_global_event("NewEvent5", "NewEvent5 desc", "Me", "Try", "Seville", "2022-05-23")
-
-
     
+    #post_global_event("NewEvent5", "NewEvent5 desc", "Me", "Try", "Seville", "2022-05-23")
+    #delete_global_events("e17")
+    get_global_events_id("e29")
+'''

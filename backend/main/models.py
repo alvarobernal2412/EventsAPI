@@ -22,8 +22,8 @@ class Event(models.Model):
         return str(self.id)
 
 class GlobalEvent(models.Model):
-    id=models.AutoField(primary_key=True)
-    globalName=models.CharField(max_length=50)
+    id=models.CharField(max_length=50,primary_key=True)
+    name=models.CharField(max_length=50)
     description=models.CharField(max_length=500)
     organizer=models.CharField(max_length=50)
     category=models.CharField(max_length=50)
