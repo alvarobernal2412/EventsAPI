@@ -110,9 +110,7 @@ class EventTestCase(TestCase):
         self.event= Event(
             eventName= "Event Test 1",
             description="Event test description 1",
-            city="Seville",
             date="2022-05-21",
-            time="13:56:00",
             calendar=self.calendar
         )
         self.event2= Event(
@@ -159,15 +157,15 @@ class EventTestCase(TestCase):
 
     def testModifyEvents(self):
         client=APIClient()
-        response = client.put('api/events/'+str(self.event.id)+'/',{
+        response = client.put('/api/events/'+ str(self.event2.id) +'/' ,{
             "description":"Event test changed description"
-        }
-        ,HTTP_AUTHORIZATION=('JWT '+self.access))
-        self.eventUpdated = Event.objects.get(pk=self.event.id)
-        self.assertEqual(response.status_code,ST_204)#Event successfully changed
+        },HTTP_AUTHORIZATION=('JWT '+self.access)) 
+
+        self.eventUpdated = Event.objects.get(pk=self.event2.id)
+        self.assertEqual(response.status_code, ST_204)#Event successfully changed
         self.assertEqual(self.eventUpdated.description, "Event test changed description")#Compare if the description has been updated
     
     def testDeleteEvents(self):
         client=APIClient()
-        response= client.delete('/api/events/'+str(self.event2.id)+'/',HTTP_AUTHORIZATION=('JWT '+self.access))
+        response= client.delete('/api/events/'+str(self.event.id)+'/',HTTP_AUTHORIZATION=('JWT '+self.access))
         self.assertEqual(response.status_code, ST_204)#Event successfully deleted

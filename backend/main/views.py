@@ -135,7 +135,7 @@ class EventView(APIView):
         data = request.data.copy()
         calendar = Calendar.objects.get(user=request.user)
         data['calendar'] = calendar.id
-        if 'city' and 'time' in request.data:
+        if ('city' !="")and ('time'is not None) in request.data:
             data['weather'] = get_weather(data['city'], data['date'], data['time'])
             if data['weather'] is None:
                 data['weather'] = "Weather is only available within the next 5 days"
