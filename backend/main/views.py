@@ -120,7 +120,7 @@ class EventView(APIView):
         if len(events) > 0:
             return Response(serializer_class.data)
         else:
-            res = {"message": "There are no events created yet"}
+            res = {"message": "No events found"}
             return Response(res, status=ST_404)
     
     def returnErrors(self,dic):
@@ -195,13 +195,13 @@ class EventIdView(APIView):
             today = datetime.combine(datetime.today(), datetime.min.time())
             days_diff = (date-today).days
 
-            if (event.city=='' and event.time is None):
+            if (data["city"]=='' and data["time"] is None):
                 data['weather']='Undefined'
                 #message="Event successfully updated. If you want to get the weather, time and city are required"
-            elif event.city=='':
+            elif data["city"]=='':
                 data['weather']='Undefined'
                 #message="Event successfully updated. If you want to get the weather, city is required"
-            elif event.time is None:
+            elif data["time"] is None:
                 data['weather']='Undefined'
                 #message="Event successfully updated. If you want to get the weather, time is required"
             else:
