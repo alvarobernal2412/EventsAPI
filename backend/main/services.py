@@ -1,11 +1,8 @@
-# File for consuming AccuWeather API
-import json
-from turtle import pos
-from urllib import response
+# File for consuming external APIs
 import requests
 from datetime import datetime
 
-key = 'a0jJ7zlYgnA6EZhtn9G3avV5nAWz1Ofq'
+key = 'a0jJ7zlYgnA6EZhtn9G3avV5nAWz1Ofq' #Key for Accuweather API
 
 def generate_request(url, params={}):
     response = requests.get(url, params=params)

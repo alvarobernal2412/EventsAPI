@@ -4,6 +4,7 @@ import os
 import json
 from re import S
 from urllib import request
+from datetime import datetime
 
 from django.shortcuts import redirect ,  render
 from django.shortcuts import get_object_or_404
@@ -135,9 +136,16 @@ class EventView(APIView):
         data = request.data.copy()
         calendar = Calendar.objects.get(user=request.user)
         data['calendar'] = calendar.id
-        if ('city' !="")and ('time'is not None) in request.data:
-            data['weather'] = get_weather(data['city'], data['date'], data['time'])
-            if data['weather'] is None:
+
+        date = data['date']
+        date = datetime.strptime(date, "%Y-%m-%d")
+        today = datetime.combine(datetime.today(), datetime.min.time())
+        days_diff = (date-today).days
+
+        if ('city' in request.data) and ('time' in request.data):
+            if  0 <= days_diff <= 4:
+                data['weather'] = get_weather(data['city'], data['date'], data['time'])
+            else:
                 data['weather'] = "Weather is only available within the next 5 days"
             message="Event successfully created"
         else:
@@ -182,6 +190,11 @@ class EventIdView(APIView):
             if "city" not in data:
                 data["city"]= event.city
 
+            date = str(data['date'])
+            date = datetime.strptime(date, "%Y-%m-%d")
+            today = datetime.combine(datetime.today(), datetime.min.time())
+            days_diff = (date-today).days
+
             if (event.city=='' and event.time is None):
                 data['weather']='Undefined'
                 #message="Event successfully updated. If you want to get the weather, time and city are required"
@@ -192,8 +205,9 @@ class EventIdView(APIView):
                 data['weather']='Undefined'
                 #message="Event successfully updated. If you want to get the weather, time is required"
             else:
-                data['weather'] = get_weather(data['city'], str(data['date']), str(data['time']))
-                if data['weather'] is None:
+                if  0 <= days_diff <= 4:
+                    data['weather'] = get_weather(data['city'], str(data['date']), str(data['time']))
+                else:
                     data['weather'] = "Weather is only available within the next 5 days"
                 #message="Event successfully updated" 
 
@@ -256,7 +270,7 @@ class GlobalEventsView(APIView):
         data["id"] = id
         serializer= GetGlobalEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
-            serializer.save() # al comentar esta línea no se guarda en la base de datos
+            serializer.save()
             return Response({eventCode:"Global Event successfully created", "Event": eventResponse},status=ST_201)
         else:
             err= self.returnErrors(serializer.errors)
@@ -265,7 +279,6 @@ class GlobalEventsView(APIView):
 class GlobalEventsIdView(APIView):
 
     def delete(self, request, pk):
-        #globalEventInDB = GlobalEvent.objects.get(id=pk)  # Problema: ¿qué devuelve si el evento no existe en la DB?
         try:
             globalEventInDB = GlobalEvent.objects.get(id=pk)
             code = delete_global_events(pk)
@@ -279,14 +292,3 @@ class GlobalEventsIdView(APIView):
         except GlobalEvent.DoesNotExist:
             res= {"message" : "You can only delete global events created from EventsAPI"}
             return Response(res, status=ST_401)
-
-        """
-        nameD = data["name"]
-        globalEvent= GlobalEvent.objects.get(name=nameD) #id=pk
-        globalEvent.delete()
-        deleteCode = delete_global_events(pk)
-        if deleteCode=='204':
-            return Response(status=ST_204)
-        elif deleteCode=='404':
-            return Response({'Error':'Global event not found'},status=ST_404)
-        """
