@@ -75,7 +75,7 @@ class CalendarView(APIView):
         serializer = UserSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"User succesfully updated":serializer.data["username"]}, status=ST_200)
+        return Response({"User succesfully updated":serializer.data["username"]}, status=ST_204)
 
     def delete(self, request):
         #If an user is not authenticated, throw the 401 error.
@@ -254,7 +254,7 @@ class GlobalEventsView(APIView):
         (eventCode,eventResponse) = post_global_event(name,description,organizer,category,location,date)
         id=eventResponse["id"]
         data["id"] = id
-        serializer= GlobalEventSerializer(data=data, context={'request':request})
+        serializer= GetGlobalEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
             serializer.save() # al comentar esta línea no se guarda en la base de datos
             return Response({eventCode:"Global Event successfully created", "Event": eventResponse},status=ST_201)
@@ -265,8 +265,9 @@ class GlobalEventsView(APIView):
 class GlobalEventsIdView(APIView):
 
     def delete(self, request, pk):
-        globalEventInDB = GlobalEvent.objects.get(id=pk)  # Problema: ¿qué devuelve si el evento no existe en la DB?
-        if globalEventInDB is not None:
+        #globalEventInDB = GlobalEvent.objects.get(id=pk)  # Problema: ¿qué devuelve si el evento no existe en la DB?
+        try:
+            globalEventInDB = GlobalEvent.objects.get(id=pk)
             code = delete_global_events(pk)
             if code == 204:
                 globalEventInDB.delete()
@@ -275,7 +276,7 @@ class GlobalEventsIdView(APIView):
             else:
                 res= {"message" : "Global event not found"}
                 return Response(res, status=ST_404)
-        else:
+        except GlobalEvent.DoesNotExist:
             res= {"message" : "You can only delete global events created from EventsAPI"}
             return Response(res, status=ST_401)
 
