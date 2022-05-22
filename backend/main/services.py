@@ -13,6 +13,7 @@ def generate_request(url, params={}):
     if response.status_code == 200:
         return response.json()
 
+#Function to get city key in accuweather api
 def get_city_id(city_name, params={}):
     response = generate_request('http://dataservice.accuweather.com/locations/v1/cities/search?apikey='
                                 + key + '&q='+ city_name, params)
@@ -20,6 +21,8 @@ def get_city_id(city_name, params={}):
        city = response[0]
        return city['Key']
 
+
+#Function to get an iconic phrase in accuweather api
 def get_weather(city, date, time, params={}):
     response = generate_request('http://dataservice.accuweather.com/forecasts/v1/daily/5day/' 
                                 + get_city_id(city) + '?apikey=' + key, params)
@@ -40,11 +43,15 @@ def get_weather(city, date, time, params={}):
             else:
                 return str(weather['DailyForecasts'][days_diff]['Day']['IconPhrase'])
 
+
+#Function to get global events from CityEventsAPI
 def get_global_events():
     response = generate_request('https://city-events-api.ew.r.appspot.com/api/events')
     if response:
         return response
 
+
+#Function to create global events in CityEventsAPI
 def post_global_event(name, description, organizer, category, location, date):
     response = requests.post('https://city-events-api.ew.r.appspot.com/api/events', 
         json={"name": name,
@@ -57,21 +64,25 @@ def post_global_event(name, description, organizer, category, location, date):
     if response:
         return (response.status_code,response.json())
 
+#Function to delete global events in CityEventsAPI
 def delete_global_events(id):
     response = requests.delete('https://city-events-api.ew.r.appspot.com/api/events'+"/"+id+"/")
     if response:
         print(response.status_code)
         return response.status_code
 
+
+#Function to get an event form CityEventsAPI
 def get_global_events_id(id):
     response = generate_request('https://city-events-api.ew.r.appspot.com/api/events'+"/"+id+"/")
     if response:
         return response
 
 
-
+'''
 if __name__ == "__main__":
     
     #post_global_event("NewEvent5", "NewEvent5 desc", "Me", "Try", "Seville", "2022-05-23")
     delete_global_events("e21")
     #get_global_events_id("e29")
+'''
