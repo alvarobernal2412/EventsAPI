@@ -81,3 +81,5 @@ class GetGlobalEventSerializer(serializers.ModelSerializer):
     class Meta: 
         model = GlobalEvent
         fields = '__all__'
+
+        
