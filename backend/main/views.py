@@ -8,6 +8,7 @@ from datetime import datetime,date
 
 from django.shortcuts import redirect ,  render
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
 
 from main import urls
 
@@ -38,7 +39,6 @@ from django.contrib.auth.models import User
 from .services import (get_weather, get_global_events, post_global_event,delete_global_events, get_global_events_id)
 
 from rest_framework.pagination import LimitOffsetPagination
-
 
 #Class to define Calendar methods 
 class CalendarView(APIView):
@@ -107,7 +107,7 @@ class EventView(generics.ListAPIView):
     serializer_class = EventSerializer
 
     search_fields = ('eventName','weather',)
-    filterset_fields = ('eventName','weather','done')
+    filterset_fields = ('eventName','weather','completed')
     ordering_fields = ('eventName','date')
     
 
@@ -124,13 +124,13 @@ class EventView(generics.ListAPIView):
     def stringToDate(dateStr):
         return (datetime.strptime(dateStr, '%m-%d-%Y').date())
 
-    paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event Name Filter',type=openapi.TYPE_STRING)
-    paramConfig2 = openapi.Parameter('weather',in_=openapi.IN_QUERY,description='Weather Filter',type=openapi.TYPE_STRING)
-    paramConfig3 = openapi.Parameter('ordering',in_=openapi.IN_QUERY,description='You can order by eventName and date (Include - for reversed order)',type=openapi.TYPE_STRING)
+    paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event name filter',type=openapi.TYPE_STRING)
+    paramConfig2 = openapi.Parameter('weather',in_=openapi.IN_QUERY,description='Weather filter',type=openapi.TYPE_STRING)
+    paramConfig3 = openapi.Parameter('ordering',in_=openapi.IN_QUERY,description='You can order by eventName and date (Include "-" for reversed order)',type=openapi.TYPE_STRING)
     paramConfig4 = openapi.Parameter('search',in_=openapi.IN_QUERY,description='You can search for eventName or weather (If it contains the word)',type=openapi.TYPE_STRING)
     #paramConfig5 = openapi.Parameter('limit',in_=openapi.IN_QUERY,description='Responses number',type=openapi.TYPE_NUMBER)
     #paramConfig6 = openapi.Parameter('offset',in_=openapi.IN_QUERY,description='Index number',type=openapi.TYPE_NUMBER)
-    paramConfig7 = openapi.Parameter('done',in_=openapi.IN_QUERY,description='Done Events filter',type=openapi.TYPE_BOOLEAN)
+    paramConfig7 = openapi.Parameter('completed',in_=openapi.IN_QUERY,description='Completed events filter',type=openapi.TYPE_BOOLEAN)
     getResponse= openapi.Response('Event structure below', CreateEventSerializer(many=True))
     
     @swagger_auto_schema(manual_parameters=[paramConfig,paramConfig2,paramConfig3,paramConfig4,paramConfig7], responses={200: getResponse,404: "No events found"}) #paramConfig5,paramConfig6
@@ -173,7 +173,7 @@ class EventView(generics.ListAPIView):
         else:
             data['weather']='Undefined'
             message="Event successfully created. If you want to get the weather, time and city are required"
-        data['done']=False
+        data['completed']=False
         
         serializer= CreateEventSerializer(data=data, context={'request':request})
         if serializer.is_valid():
@@ -211,8 +211,8 @@ class EventIdView(APIView):
                 data["time"]= event.time
             if "city" not in data:
                 data["city"]= event.city
-            if "done" not in data:
-                data["done"]= event.done
+            if "completed" not in data:
+                data["completed"]= event.completed
 
             date = str(data['date'])
             date = datetime.strptime(date, "%Y-%m-%d")
