@@ -27,6 +27,7 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -56,7 +57,7 @@ class CalendarView(APIView):
         return err
 
     #Below appears the code to generate the body in Swagger documentation
-    @swagger_auto_schema(request_body=UserSerializer)
+    @swagger_auto_schema(request_body=UserSerializer,responses={201: "Calendar successfully created",400: "Bad request (This status code gives more information of the request error)"})
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
@@ -68,7 +69,7 @@ class CalendarView(APIView):
             err= self.returnErrors(serializer.errors)
             return Response({"error": err},status=ST_400)
 
-    @swagger_auto_schema(request_body=UserSerializer)
+    @swagger_auto_schema(request_body=UserSerializer,responses={204: "No Content (Calendar successfully updated)",401: "Unauthorized (You need the JWT token to change your calendar information)"})
     def put(self,request):
         #If an user is not authenticated, throw the 401 error.
         if request.user.is_anonymous:
@@ -78,6 +79,7 @@ class CalendarView(APIView):
         serializer.save()
         return Response({"User succesfully updated":serializer.data["username"]}, status=ST_204)
 
+    @swagger_auto_schema(responses={204: "No Content (Successfully deleted)",401: "Unauthorized (You need the JWT token to delete your calendar information)"})
     def delete(self, request):
         #If an user is not authenticated, throw the 401 error.
         if request.user.is_anonymous:
@@ -110,8 +112,9 @@ class EventView(APIView):
         query = Event.objects.all()
         return query
 
-    #paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event Name',type=openapi.TYPE_STRING)
-    @swagger_auto_schema()
+    paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event Name',type=openapi.TYPE_STRING)
+    getResponse= openapi.Response('Event structure below', CreateEventSerializer(many=True))
+    @swagger_auto_schema(manual_parameters=[paramConfig], responses={200: getResponse,404: "No events found"})
     def get(self, request):
         calendarId = Calendar.objects.get(user=request.user)
         events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
@@ -130,7 +133,7 @@ class EventView(APIView):
                 err[k]= dic[k][0].capitalize()
         return err
  
-    @swagger_auto_schema(request_body=EventSerializer)
+    @swagger_auto_schema(request_body=EventSerializer,responses={201: "Event successfully created",400: "Bad request (This status code gives more information of the request error)"})
     @csrf_exempt
     def post(self, request):
         data = request.data.copy()
@@ -172,7 +175,7 @@ class EventIdView(APIView):
         except Event.DoesNotExist:
             return Response(ST_404)
 
-    @swagger_auto_schema(request_body=EventSerializer)
+    @swagger_auto_schema(request_body=EventSerializer,responses={204: "No Content (Event successfully updated)",400: "Bad request (This status code gives more information of the request error)"})
     def put(self, request , pk):
         event = self.get_object(pk)
         calendarId = Calendar.objects.get(user=request.user)
@@ -219,7 +222,7 @@ class EventIdView(APIView):
             return Response(serializer.errors, status=ST_400)
 
 
-    @swagger_auto_schema()
+    @swagger_auto_schema(responses={204: "No Content (Event successfully deleted",404: "Event not found in your calendar or deleted yet"})
     @csrf_exempt    
     def delete(self, request , pk):
         event = self.get_object(pk)
@@ -245,7 +248,7 @@ class GlobalEventsView(APIView):
                 err[k]= dic[k][0].capitalize()
         return err
     
-    @swagger_auto_schema()
+    @swagger_auto_schema(responses={200: "Search results with matching criteria",400: "Bad Request"})
     def get(self,request):
         globalEvents= get_global_events()
         serializer_class = GetGlobalEventSerializer(globalEvents, many=True)
@@ -256,7 +259,7 @@ class GlobalEventsView(APIView):
             res = {"Message": "There are no events created yet"}
             return Response(res, status=ST_404)
 
-    @swagger_auto_schema(request_body=GlobalEventSerializer)
+    @swagger_auto_schema(request_body=GlobalEventSerializer,responses={201: "Global event correctly created",400: "Bad Request"})
     def post(self,request):
         data = request.data.copy()
         name=data["name"]
@@ -277,7 +280,7 @@ class GlobalEventsView(APIView):
             return Response({"Error":err},status=ST_400)  
     
 class GlobalEventsIdView(APIView):
-
+    @swagger_auto_schema(responses={204: "No Content (Global event deleted)",401:"You can only delete global events created from EventsAPI",404: "Global event not found"})
     def delete(self, request, pk):
         try:
             globalEventInDB = GlobalEvent.objects.get(id=pk)
