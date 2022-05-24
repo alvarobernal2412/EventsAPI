@@ -5,9 +5,9 @@ from datetime import time
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import Calendar, Event
+from .models import Calendar, Event, GlobalEvent
 
-#Serializer that validates user password and set Calendar structure
+#Calendar serializers
 class CreateCalendarSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     
@@ -28,7 +28,7 @@ class CalendarIdSerializer(serializers.ModelSerializer):
         model = Calendar
         fields = ['id',]
 
-#Serializer that validates user password and set User structure
+#User serializers
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -41,19 +41,19 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-#Serializer that gives Swagger user structure
+
 class SwaggerUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ['username']
 
-#Serializer that sets Event structure
+#Events serializers
 class CreateEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('id', 'eventName', 'description', 'city', 'date', 'time', 'weather', 'calendar')
+        fields = ('id', 'eventName', 'description', 'city', 'date', 'time', 'weather', 'completed', 'calendar')
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -62,6 +62,14 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('eventName', 'description', 'city', 'date', 'time')
 
+
+class PutEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = ('eventName', 'description', 'city', 'date', 'time', 'completed')
+
+
 #Serializer that gives Swagger Events structure
 class SwaggerEventSerializer(serializers.ModelSerializer):
 
@@ -69,3 +77,17 @@ class SwaggerEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('id', 'eventName', 'description', 'city', 'date', 'time', 'weather', 'calendar')
 
+#Global Events serializer
+class GlobalEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GlobalEvent
+        fields = ('name', 'description', 'organizer', 'category', 'location','date')
+
+class GetGlobalEventSerializer(serializers.ModelSerializer):
+
+    class Meta: 
+        model = GlobalEvent
+        fields = '__all__'
+
+        

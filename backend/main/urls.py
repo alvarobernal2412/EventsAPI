@@ -11,6 +11,10 @@ urlpatterns = [
     path('events/', views.EventView.as_view()),
     path('events/<int:pk>/' , views.EventIdView.as_view()),
 
+    #GlobalEvents methods - Get, Post and Delete
+    path('globalEvents/', views.GlobalEventsView.as_view()),
+    path('globalEvents/<str:pk>/', views.GlobalEventsIdView.as_view()),
+
     #Path to create the Daily JSON Web Token and the refresh code to create the Weekly token
     path('auth/token/', TokenObtainPairView.as_view()),
     #Path to create the Weekly token with the code from auth/token 
