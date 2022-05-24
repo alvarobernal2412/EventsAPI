@@ -21,10 +21,28 @@
             }
             a{
                 text-decoration: none;
-                margin: 20px;
             }
             a:hover{
                 text-decoration: underline;
+            }
+            div#linkContainer{
+                text-align: center;
+                margin-top: 3%;
+            }
+            div#linkContainer1{
+                margin-top: 1%;
+            }
+            div#linkContainer2{
+                margin-top: 1%;
+            }
+            div#linkContainer3{
+                margin-top: 1%;
+            }
+            div#linkContainer4{
+                margin-top: 1%;
+            }
+            div#linkContainer5{
+                margin-top: 1%;
             }
         </style>
 
@@ -34,11 +52,13 @@
             <header>
                 <h1>EventsAPI</h1>
             </header>
-            
-            <a href="http://localhost:8000/swagger/" target="_blank">- EventsAPI documentation<br></a>
-            <a href="http://localhost:8000/api/calendar/" target="_blank">- EventsAPI calendar<br></a>
-            <a href="http://localhost:8000/api/events/" target="_blank">- EventsAPI events (Authorization needed)<br></a>
-            <a href="http://localhost:8000/api/auth/token" target="_blank">- EventsAPI Authorization (Calendar must be created yet)<br></a>
+            <div id="linkContainer">
+                <div id="linkContainer1"><a href="http://localhost:8000/swagger/" target="_blank">- EventsAPI documentation<br></a></div>
+                <div id="linkContainer2"><a href="http://localhost:8000/api/calendar/" target="_blank">- EventsAPI calendar<br></a></div>
+                <div id="linkContainer3"><a href="http://localhost:8000/api/events/" target="_blank">- EventsAPI events (Authorization needed)<br></a></div>
+                <div id="linkContainer4"><a href="http://localhost:8000/api/globalEvents/" target="_blank">- EventsAPI globalEvents<br></a></div>
+                <div id="linkContainer5"><a href="http://localhost:8000/api/auth/token" target="_blank">- EventsAPI Authorization (Calendar must be created yet)<br></a></div>
+            </div>
         </div>
     </body>
 </html>
