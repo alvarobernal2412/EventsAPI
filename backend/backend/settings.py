@@ -142,16 +142,6 @@ import dj_database_url
 from decouple import config
 
 DATABASES = {
-    '''
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'events_api_db',
-        'USER': 'postgres',
-        'PASSWORD': 'events4321api',
-        'HOST': '127.0.0.1',
-        'DATABASE_PORT': '5432',
-    }
-    '''
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'd4qor8jl1kugdo',
