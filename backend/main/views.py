@@ -37,9 +37,6 @@ from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, Use
                             GlobalEventSerializer, GetGlobalEventSerializer)
 from django.contrib.auth.models import User
 from .services import (get_weather, get_global_events, post_global_event,delete_global_events, get_global_events_id)
-
-from rest_framework.pagination import LimitOffsetPagination
-
 #Class to define Calendar methods 
 class CalendarView(APIView):
     permission_classes= (AllowAny,) 
@@ -93,18 +90,14 @@ class CalendarView(APIView):
         user.delete()
         return Response(status=ST_204)
 
-class APILimitOffsetPagination(LimitOffsetPagination):
-    pass
-
-
-
 #Class to define Events methods 
-class EventView(generics.ListAPIView):
-    permission_classes= (IsAuthenticated,)  
-
-    filter_backends = (DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,) #filters.OrderingFilter,filters.SearchFilter,
-
+class EventView(APIView):
+    permission_classes= (IsAuthenticated,) 
+    filter_backends = (DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter,)
+    
+    queryset =Event.objects.all()
     serializer_class = EventSerializer
+    
 
     search_fields = ('eventName','weather',)
     filterset_fields = ('eventName','weather','completed')
@@ -113,13 +106,8 @@ class EventView(generics.ListAPIView):
 
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
-            pagination_class = APILimitOffsetPagination
             queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
-    
-    def get_queryset(self, request):
-        query =Event.objects.all()
-        return query
 
     def stringToDate(dateStr):
         return (datetime.strptime(dateStr, '%m-%d-%Y').date())
@@ -128,19 +116,29 @@ class EventView(generics.ListAPIView):
     paramConfig2 = openapi.Parameter('weather',in_=openapi.IN_QUERY,description='Weather filter',type=openapi.TYPE_STRING)
     paramConfig3 = openapi.Parameter('ordering',in_=openapi.IN_QUERY,description='You can order by eventName and date (Include "-" for reversed order)',type=openapi.TYPE_STRING)
     paramConfig4 = openapi.Parameter('search',in_=openapi.IN_QUERY,description='You can search for eventName or weather (If it contains the word)',type=openapi.TYPE_STRING)
-    #paramConfig5 = openapi.Parameter('limit',in_=openapi.IN_QUERY,description='Responses number',type=openapi.TYPE_NUMBER)
-    #paramConfig6 = openapi.Parameter('offset',in_=openapi.IN_QUERY,description='Index number',type=openapi.TYPE_NUMBER)
+    paramConfig5 = openapi.Parameter('limit',in_=openapi.IN_QUERY,description='Responses number',type=openapi.TYPE_NUMBER)
+    paramConfig6 = openapi.Parameter('offset',in_=openapi.IN_QUERY,description='Index number',type=openapi.TYPE_NUMBER)
     paramConfig7 = openapi.Parameter('completed',in_=openapi.IN_QUERY,description='Completed events filter',type=openapi.TYPE_BOOLEAN)
     getResponse= openapi.Response('Event structure below', CreateEventSerializer(many=True))
     
-    @swagger_auto_schema(manual_parameters=[paramConfig,paramConfig2,paramConfig3,paramConfig4,paramConfig7], responses={200: getResponse,404: "No events found"}) #paramConfig5,paramConfig6
+    @swagger_auto_schema(manual_parameters=[paramConfig,paramConfig2,paramConfig5,paramConfig6,paramConfig3,paramConfig4,paramConfig7], responses={200: getResponse,404: "No events found"}) #paramConfig5,paramConfig6
     def get(self, request):
+        limit= request.GET.get('limit') 
+        offset= request.GET.get('offset') 
         calendarId = Calendar.objects.get(user=request.user)
-        events = self.filter_queryset(self.get_queryset(request)).filter(calendar=calendarId)
+        if (limit is None) and (offset is not None):
+            events = self.filter_queryset(self.queryset).filter(calendar=calendarId)[int(offset):]
+        elif (offset is None) and (limit is not None):
+            events = self.filter_queryset(self.queryset).filter(calendar=calendarId)[:int(limit)]
+        elif (limit is None) and (offset is None):
+            events = self.filter_queryset(self.queryset).filter(calendar=calendarId)
+        else:
+            events = self.filter_queryset(self.queryset).filter(calendar=calendarId)[int(offset):(int(offset)+int(limit))]
+        
+        
         serializer_class = CreateEventSerializer(events, many=True)
-
         if len(events) > 0:
-            return Response(serializer_class.data)
+            return Response(serializer_class.data,status=ST_200)
         else:
             res = {"message": "No events found"}
             return Response(res, status=ST_404)
