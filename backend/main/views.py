@@ -37,6 +37,8 @@ from .serializers import    (CreateCalendarSerializer, CalendarIdSerializer, Use
                             GlobalEventSerializer, GetGlobalEventSerializer)
 from django.contrib.auth.models import User
 from .services import (get_weather, get_global_events, post_global_event,delete_global_events, get_global_events_id)
+
+
 #Class to define Calendar methods 
 class CalendarView(APIView):
     permission_classes= (AllowAny,) 
@@ -109,8 +111,6 @@ class EventView(APIView):
             queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
 
-    def stringToDate(dateStr):
-        return (datetime.strptime(dateStr, '%m-%d-%Y').date())
 
     paramConfig = openapi.Parameter('eventName',in_=openapi.IN_QUERY,description='Event name filter',type=openapi.TYPE_STRING)
     paramConfig2 = openapi.Parameter('weather',in_=openapi.IN_QUERY,description='Weather filter',type=openapi.TYPE_STRING)
@@ -121,6 +121,8 @@ class EventView(APIView):
     paramConfig7 = openapi.Parameter('completed',in_=openapi.IN_QUERY,description='Completed events filter',type=openapi.TYPE_BOOLEAN)
     getResponse= openapi.Response('Event structure below', CreateEventSerializer(many=True))
     
+
+
     @swagger_auto_schema(manual_parameters=[paramConfig,paramConfig2,paramConfig5,paramConfig6,paramConfig3,paramConfig4,paramConfig7], responses={200: getResponse,404: "No events found"}) #paramConfig5,paramConfig6
     def get(self, request):
         limit= request.GET.get('limit') 

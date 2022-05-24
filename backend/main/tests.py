@@ -11,8 +11,6 @@ from rest_framework.test import APIClient
 from main.models import Calendar, Event, GlobalEvent,User
 from datetime import date
 
-# No solo se deben añadir test positivos, tambien se deben probar errores
-
 class AuthenticationTestCase(TestCase):
     access = ""
     refresh = ""
