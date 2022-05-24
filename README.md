@@ -10,4 +10,4 @@ API developed in django framework:
         1. In events you can get automatic the weather filling the city, date and
            time attributes; but english is needed to work correctly.
         2. Django need slashes to use id. Example:  DELETE -> 'url/events/id/'
-    
+        3. The time attribute has 'HH:MM:SS' structure
