@@ -144,10 +144,10 @@ from decouple import config
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'd4qor8jl1kugdo',
-        'USER': 'twzcrfgauoqlon',
-        'PASSWORD': 'b5b351181517461dd6297c27bd6f5a3b2085ca4f236687308201c6eef42514ec',
-        'HOST': 'ec2-52-30-67-143.eu-west-1.compute.amazonaws.com',
+        'NAME': 'dcisagbp0pqmqq',
+        'USER': 'dxaddwdffncysf',
+        'PASSWORD': '9edeef5f9b64ed9837ce1bd2470314224240a087063acad336166ad4734251c5',
+        'HOST': 'ec2-54-228-218-84.eu-west-1.compute.amazonaws.com',
         'DATABASE_PORT': '5432',
     }
 }
